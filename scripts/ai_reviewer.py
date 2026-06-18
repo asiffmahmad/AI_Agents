@@ -1,4 +1,6 @@
 import os
+import re
+import sys
 import subprocess
 import asyncio
 from google.antigravity import Agent, LocalAgentConfig
@@ -17,9 +19,32 @@ async def main():
         print("No changes found in the last commit. Skipping AI review.")
         return
 
+    # Extract changed files to determine necessary skills
+    changed_files = re.findall(r'^diff --git a/(.*?) b/', diff_content, re.MULTILINE)
+    
+    needed_skills = set()
+    for file in changed_files:
+        if file.endswith('.java'):
+            needed_skills.add('java-reviewer')
+        elif file.endswith(('.ts', '.html')) and 'angular' in diff_content.lower():
+            needed_skills.add('angular-reviewer')
+        elif file.endswith(('.jsx', '.tsx', '.js', '.ts')):
+            needed_skills.add('react-reviewer')
+        elif file.endswith('.sql'):
+            needed_skills.add('sql-reviewer')
+
+    # Default to java if nothing matched but we want a review (fallback)
+    if not needed_skills:
+        needed_skills.add('java-reviewer')
+
+    print(f"Detected file changes requiring the following skills: {', '.join(needed_skills)}")
     print("Starting AI Code Review...")
+    
+    skills_instruction = " and ".join([f"`{skill}`" for skill in needed_skills])
+
     prompt = (
-        "Please act as the `code-reviewer` and review the following git diff:\n\n"
+        f"Please act as the {skills_instruction} and review the following git diff.\n"
+        "Apply the strict rules defined in your assigned skill documents.\n\n"
         f"```diff\n{diff_content}\n```"
     )
 
