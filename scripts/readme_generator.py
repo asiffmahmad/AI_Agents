@@ -1,10 +1,13 @@
 import os
+import sys
+import glob
 import asyncio
 from google.antigravity import Agent, LocalAgentConfig
 
 def read_file(filepath):
     try:
-        with open(filepath, 'r') as f:
+        # Added utf-8 encoding per AI review recommendation
+        with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
     except Exception as e:
         return f"Error reading {filepath}: {e}"
@@ -13,14 +16,16 @@ async def main():
     print("Reading project files to build context...")
     
     base_dir = "java-crud-app"
-    files_to_read = [
-        os.path.join(base_dir, "pom.xml"),
-        os.path.join(base_dir, "src/main/resources/application.properties"),
-        os.path.join(base_dir, "src/main/java/com/example/crud/model/Task.java"),
-        os.path.join(base_dir, "src/main/java/com/example/crud/repository/TaskRepository.java"),
-        os.path.join(base_dir, "src/main/java/com/example/crud/controller/TaskController.java")
-    ]
     
+    # Replaced hardcoded paths with glob patterns per AI review recommendation
+    files_to_read = []
+    files_to_read.extend(glob.glob(os.path.join(base_dir, "pom.xml")))
+    files_to_read.extend(glob.glob(os.path.join(base_dir, "**/*.properties"), recursive=True))
+    files_to_read.extend(glob.glob(os.path.join(base_dir, "**/*.java"), recursive=True))
+    
+    if not files_to_read:
+        print(f"Warning: No source files found in {base_dir}. The README might lack detail.", file=sys.stderr)
+        
     context = ""
     for file in files_to_read:
         content = read_file(file)
@@ -44,18 +49,21 @@ async def main():
             response = await agent.chat(prompt)
             readme_content = await response.text()
             
-            # Clean up the output just in case the model wraps it in markdown blocks
+            # Improved robustness of markdown fence stripping per AI review recommendation
+            readme_content = readme_content.strip()
             if readme_content.startswith("```markdown"):
                 readme_content = readme_content[11:]
             elif readme_content.startswith("```"):
                 readme_content = readme_content[3:]
-            
+                
+            readme_content = readme_content.strip()
             if readme_content.endswith("```"):
                 readme_content = readme_content[:-3]
                 
             readme_content = readme_content.strip()
 
-            with open("README.md", "w") as f:
+            # Added utf-8 encoding per AI review recommendation
+            with open("README.md", "w", encoding='utf-8') as f:
                 f.write(readme_content)
                 
             print("\nSuccessfully generated and saved to README.md!")
