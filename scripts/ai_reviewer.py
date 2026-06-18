@@ -26,12 +26,24 @@ async def main():
     for file in changed_files:
         if file.endswith('.java'):
             needed_skills.add('java-reviewer')
-        elif file.endswith(('.ts', '.html')) and 'angular' in diff_content.lower():
-            needed_skills.add('angular-reviewer')
-        elif file.endswith(('.jsx', '.tsx', '.js', '.ts')):
-            needed_skills.add('react-reviewer')
         elif file.endswith('.sql'):
             needed_skills.add('sql-reviewer')
+        elif file.endswith('.js'):
+            if 'react' in diff_content.lower():
+                needed_skills.add('react-reviewer')
+            else:
+                needed_skills.add('javascript-reviewer')
+        elif file.endswith('.ts'):
+            if 'angular' in diff_content.lower():
+                needed_skills.add('angular-reviewer')
+            elif 'react' in diff_content.lower():
+                needed_skills.add('react-reviewer')
+            else:
+                needed_skills.add('typescript-reviewer')
+        elif file.endswith('.jsx') or file.endswith('.tsx'):
+            needed_skills.add('react-reviewer')
+        elif file.endswith('.html') and 'angular' in diff_content.lower():
+            needed_skills.add('angular-reviewer')
 
     # Default to java if nothing matched but we want a review (fallback)
     if not needed_skills:
