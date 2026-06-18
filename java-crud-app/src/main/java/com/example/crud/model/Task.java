@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 @Entity
 public class Task {
 
+    // A simple task entity for our AI agents to manage
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
