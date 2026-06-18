@@ -19,16 +19,14 @@ async def main():
 
     print("Starting AI Code Review...")
     prompt = (
-        "You are an expert Java and Spring Boot code reviewer. "
-        "Please review the following git diff. Point out any bugs, "
-        "security issues, or deviations from best practices. "
-        "Keep your review concise and constructive.\n\n"
+        "Please act as the `code-reviewer` and review the following git diff:\n\n"
         f"```diff\n{diff_content}\n```"
     )
 
-    # API Key is read from GEMINI_API_KEY env var automatically by LocalAgentConfig
+    # Load the agent skills from the local 'skills' directory
+    config = LocalAgentConfig(skills_paths=["skills"])
     try:
-        async with Agent(LocalAgentConfig()) as agent:
+        async with Agent(config) as agent:
             response = await agent.chat(prompt)
             review = await response.text()
             
